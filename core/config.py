@@ -1,5 +1,5 @@
 """
-Cấu hình Kilrun — đọc từ .env trong thư mục gốc.
+Kilrun configuration — read from the .env file in the project root.
 """
 import os
 from pathlib import Path

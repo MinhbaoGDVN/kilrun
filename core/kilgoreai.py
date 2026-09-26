@@ -1,5 +1,5 @@
 """
-KilgoreAI Python Client — core engine. Đừng sửa file này.
+KilgoreAI Python Client — core engine. Do not modify this file.
 API docs: https://apidocs.kilgoreai.xyz/
 """
 import json

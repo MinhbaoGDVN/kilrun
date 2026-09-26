@@ -1,6 +1,6 @@
 """
-Kilrun Agent Tools — công cụ cho agent dùng để tương tác với hệ thống.
-KHÔNG xoá file này. Agent cần nó để hoạt động.
+Kilrun Agent Tools — utilities the agent uses to interact with the system.
+Do not delete this file. The agent requires it to operate.
 """
 import re
 import uuid
@@ -54,7 +54,7 @@ def run_python(code: str, timeout: int = 30) -> tuple[int, str, str]:
 
 
 def parse_actions(text: str) -> list[dict]:
-    """Trích xuất action block từ response AI."""
+    """Extract action blocks from an AI response."""
     actions = []
     for m in re.finditer(r"```create:([^\n]+)\n(.*?)```", text, re.DOTALL):
         actions.append({"type": "create", "path": m.group(1).strip(), "content": m.group(2)})

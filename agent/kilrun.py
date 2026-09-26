@@ -16,7 +16,7 @@ import subprocess
 from pathlib import Path
 from datetime import datetime
 
-# Thêm core/ vào path
+# Add core/ to the import path.
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "core"))
 sys.path.insert(0, str(Path(__file__).parent))
@@ -31,7 +31,7 @@ try:
     from rich.prompt import Confirm
     from rich import box
 except ImportError:
-    print("Thiếu rich. Chạy: pip install rich")
+    print("The rich package is missing. Install it with: pip install rich")
     sys.exit(1)
 
 try:
@@ -39,7 +39,7 @@ try:
     from kilgoreai import KilgoreAI
     import tools
 except ImportError as e:
-    print(f"Lỗi import: {e}")
+    print(f"Import error: {e}")
     sys.exit(1)
 
 # ── Console ────────────────────────────────────────────────────────────────────
@@ -54,56 +54,56 @@ BANNER = """\
 ╚═╝  ╚═╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝[/]
 [dim #a78bfa]AI Agent Terminal · kilgoreai.xyz[/]"""
 
-AGENT_SYSTEM = """Bạn là Kilrun — AI agent chạy trực tiếp trên terminal.
+AGENT_SYSTEM = """You are Kilrun, an AI agent running directly in the terminal.
 
-Bạn CÓ THỂ tạo file và chạy lệnh bằng cú pháp sau:
+You CAN create files and run commands using the following syntax:
 
-Tạo file:
-```create:tên_file.py
-# nội dung
+Create a file:
+```create:filename.py
+# file contents
 ```
 
-Chạy shell:
+Run a shell command:
 ```shell
-lệnh
+command
 ```
 
-Chạy Python trực tiếp:
+Run Python directly:
 ```python:run
 print("hello")
 ```
 
-Mọi file tạo ra nằm trong workspace/.
-Giải thích ngắn trước khi làm. Trả lời tiếng Việt.
+All created files must be placed in workspace/.
+Briefly explain what you are about to do. Respond in English.
 """
 
 HELP_TEXT = """
 ## ⚡ Kilrun — Commands
 
-| Lệnh | Mô tả |
+| Command | Description |
 |------|-------|
-| `/mode chat` | Chat thường |
-| `/mode agent` | Agent tự code, tạo file, chạy lệnh |
-| `/model <id>` | Đổi model |
-| `/search on\|off` | Bật/tắt web search |
-| `/files` | Xem workspace |
-| `/exec <cmd>` | Chạy shell trực tiếp |
-| `/image <prompt>` | Sinh ảnh |
-| `/tts <text>` | Text → MP3 |
-| `/models` | Danh sách models |
-| `/clear` | Xoá lịch sử |
-| `/save` | Lưu chat vào logs/ |
-| `/status` | Thông tin session |
-| `/help` | Bảng này |
-| `/copy [số]` | Copy phản hồi hoặc một khối code |
-| `/exit` | Thoát |
+| `/mode chat` | Standard chat |
+| `/mode agent` | Let the agent write code, create files, and run commands |
+| `/model <id>` | Change the model |
+| `/search on\|off` | Toggle web search |
+| `/files` | List workspace files |
+| `/exec <cmd>` | Run a shell command directly |
+| `/image <prompt>` | Generate an image |
+| `/tts <text>` | Convert text to MP3 |
+| `/models` | List available models |
+| `/clear` | Clear conversation history |
+| `/save` | Save the chat to logs/ |
+| `/status` | Show session information |
+| `/help` | Show this help menu |
+| `/copy [number]` | Copy a reply or a code block |
+| `/exit` | Exit |
 
 ## 🤖 Agent mode
-AI tự tạo file vào `workspace/`, tự chạy code.
-Mỗi hành động sẽ hỏi xác nhận trước khi thực thi.
+The AI can create files in `workspace/` and run code.
+You will be asked to confirm each action before it is executed.
 
 ## ⌨️  Shortcuts
-`Enter` gửi · `Ctrl+C` huỷ · `/exit` thoát
+`Enter` send · `Ctrl+C` cancel · `/exit` exit
 """
 
 
@@ -184,7 +184,7 @@ def copy_to_clipboard(text):
 
             if process is None:
                 raise RuntimeError(
-                    "Không tìm thấy wl-copy, xclip hoặc xsel"
+                    "Could not find wl-copy, xclip, or xsel"
                 )
 
         return True, ""
@@ -219,10 +219,10 @@ def print_ai(msg, mode: str = "chat"):
         console.print(
             "  [dim]Copy code:[/] "
             + commands
-            + "  [dim]| toàn bộ: /copy[/]"
+            + "  [dim]| full reply: /copy[/]"
         )
     else:
-        console.print("  [dim]Copy phản hồi: [bold]/copy[/][/]")
+        console.print("  [dim]Copy reply: [bold]/copy[/][/]")
 
 
 
@@ -337,11 +337,11 @@ class Session:
                 icon = "⚡" if arg == "agent" else "💬"
                 console.print(f"  [dim]→ {icon} mode: [bold]{self.mode}[/][/]")
             else:
-                console.print("[yellow]Dùng: /mode chat | /mode agent[/]")
+                console.print("[yellow]Usage: /mode chat | /mode agent[/]")
 
         elif cmd == "/model":
             if arg: self.model = arg; console.print(f"  [dim]→ model: [bold #6c63ff]{self.model}[/][/]")
-            else: console.print("[yellow]/model <tên>[/]")
+            else: console.print("[yellow]Usage: /model <name>[/]")
 
         elif cmd == "/search":
             self.search = arg.lower() not in ("off","0","false")
@@ -350,19 +350,19 @@ class Session:
         elif cmd == "/copy":
             if not self.last_reply:
                 console.print(
-                    "[yellow]Chưa có phản hồi AI nào để sao chép.[/]"
+                    "[yellow]There is no AI response to copy yet.[/]"
                 )
                 return
 
             if not arg:
                 text_to_copy = self.last_reply
-                description = "toàn bộ phản hồi"
+                description = "the full reply"
             else:
                 try:
                     block_number = int(arg)
                 except ValueError:
                     console.print(
-                        "[yellow]Dùng: /copy hoặc /copy <số khối code>[/]"
+                        "[yellow]Usage: /copy or /copy <code block number>[/]"
                     )
                     return
 
@@ -370,28 +370,28 @@ class Session:
 
                 if block_number < 1 or block_number > len(blocks):
                     console.print(
-                        "[yellow]Không có khối code số "
+                        "[yellow]There is no code block number "
                         + str(block_number)
-                        + ". Hiện có "
+                        + ". There are "
                         + str(len(blocks))
-                        + " khối.[/]"
+                        + " code block(s).[/]"
                     )
                     return
 
                 text_to_copy = blocks[block_number - 1]
-                description = "khối code " + str(block_number)
+                description = "code block " + str(block_number)
 
             copied, error = copy_to_clipboard(text_to_copy)
 
             if copied:
                 console.print(
-                    "  [green]✓[/] Đã copy "
+                    "  [green]✓[/] Copied "
                     + description
-                    + " vào clipboard."
+                    + " to the clipboard."
                 )
             else:
                 console.print(
-                    "[red]Không thể copy:[/] " + error
+                    "[red]Could not copy:[/] " + error
                 )
 
 
@@ -400,17 +400,17 @@ class Session:
             self.conv_id = str(uuid.uuid4())
             console.clear()
             console.print(BANNER); console.print()
-            console.print("[dim]Lịch sử đã xoá.[/]")
+            console.print("[dim]Conversation history cleared.[/]")
 
         elif cmd == "/save":
             ts = datetime.now().strftime("%Y%m%d_%H%M%S")
             out = self.logs_dir / f"chat_{ts}.json"
             out.write_text(json.dumps(self.history, ensure_ascii=False, indent=2), encoding="utf-8")
-            console.print(f"  [green]✓[/] Đã lưu: [dim]{out}[/]")
+            console.print(f"  [green]✓[/] Saved: [dim]{out}[/]")
 
         elif cmd == "/files":
             files = tools.list_workspace()
-            if not files: console.print("[dim]workspace/ trống.[/]"); return
+            if not files: console.print("[dim]workspace/ is empty.[/]"); return
             t = Table(box=box.SIMPLE, show_header=False, padding=(0,1))
             t.add_column(style="#6c63ff"); t.add_column(style="dim")
             for f in files:
@@ -418,45 +418,45 @@ class Session:
             console.print(Panel(t, title="[dim]workspace/[/]", border_style="dim"))
 
         elif cmd == "/exec":
-            if not arg: console.print("[yellow]/exec <lệnh>[/]"); return
+            if not arg: console.print("[yellow]Usage: /exec <command>[/]"); return
             with console.status(f"[dim]$ {arg}[/]"):
                 rc, out, err = tools.run_shell(arg)
             print_exec("shell", arg, rc, out, err)
 
         elif cmd == "/image":
             if not arg: console.print("[yellow]/image <prompt>[/]"); return
-            with console.status("[dim]Đang sinh ảnh...[/]"):
+            with console.status("[dim]Generating image...[/]"):
                 try:
                     urls = self.ai.generate_image(arg)
                     for u in urls: console.print(f"  [green]✓[/] {u}")
                 except Exception as e: console.print(f"  [red]✗[/] {e}")
 
         elif cmd == "/tts":
-            if not arg: console.print("[yellow]/tts <văn bản>[/]"); return
+            if not arg: console.print("[yellow]Usage: /tts <text>[/]"); return
             out = tools.WORKSPACE / "tts_output.mp3"
-            with console.status("[dim]Đang tạo audio...[/]"):
+            with console.status("[dim]Generating audio...[/]"):
                 try:
                     self.ai.tts(arg, save_path=out)
-                    console.print(f"  [green]✓[/] Đã lưu: [dim]{out}[/]")
+                    console.print(f"  [green]✓[/] Saved: [dim]{out}[/]")
                 except Exception as e: console.print(f"  [red]✗[/] {e}")
 
         elif cmd == "/models":
-            with console.status("[dim]Đang tải...[/]"):
+            with console.status("[dim]Loading...[/]"):
                 try:
                     ms = self.ai.list_models()
                     t = Table(box=box.SIMPLE, show_header=False)
                     t.add_column(style="#6c63ff")
                     for m in ms: t.add_row(m if isinstance(m,str) else m.get("id","?"))
                     console.print(t)
-                except Exception as e: console.print(f"[red]Lỗi:[/] {e}")
+                except Exception as e: console.print(f"[red]Error:[/] {e}")
 
         else:
-            console.print(f"[yellow]Lệnh không biết: {cmd}  (gõ /help)[/]")
+            console.print(f"[yellow]Unknown command: {cmd}  (type /help)[/]")
 
     def run(self):
         console.print(BANNER); console.print()
         show_status(self.model, self.mode, self.search)
-        console.print("[dim]  /help · /mode agent · Ctrl+C thoát[/]\n")
+        console.print("[dim]  /help · /mode agent · Ctrl+C to exit[/]\n")
 
         while True:
             try:
@@ -467,7 +467,7 @@ class Session:
                 if line.startswith("/"): self.command(line)
                 else: self.send(line)
             except KeyboardInterrupt:
-                console.print("\n[dim]Ctrl+C · gõ /exit để thoát[/]")
+                console.print("\n[dim]Ctrl+C · type /exit to quit[/]")
             except SystemExit: break
             except EOFError: break
 
@@ -475,11 +475,11 @@ class Session:
 def main():
     import argparse
     p = argparse.ArgumentParser(prog="kilrun", description="Kilrun AI Agent Terminal",
-                                epilog="Gõ /help để xem tất cả lệnh")
-    p.add_argument("--agent",  "-a", action="store_true", help="Bắt đầu ở agent mode")
+                                epilog="Type /help to see all commands")
+    p.add_argument("--agent",  "-a", action="store_true", help="Start in agent mode")
     p.add_argument("--model",  "-m", default=None)
     p.add_argument("--search", "-s", action="store_true")
-    p.add_argument("prompt", nargs="*", help="Gửi prompt ngay rồi vào loop")
+    p.add_argument("prompt", nargs="*", help="Send a prompt immediately, then enter the interactive loop")
     args = p.parse_args()
 
     s = Session()

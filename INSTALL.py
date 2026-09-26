@@ -2,10 +2,10 @@
 """
 ╔══════════════════════════════════════════════╗
 ║   KILRUN — Installer                         ║
-║   Chạy file này một lần là xong.             ║
+║   Run this file once to set everything up.   ║
 ║   python INSTALL.py                          ║
 ╚══════════════════════════════════════════════╝
-Tự tạo toàn bộ cấu trúc thư mục, cài deps, sẵn sàng dùng.
+Automatically creates the project structure, installs dependencies, and gets Kilrun ready to use.
 """
 
 import os
@@ -16,31 +16,31 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 
 # ══════════════════════════════════════════════════════════════════════════════
-# CẤU TRÚC THƯ MỤC
+# PROJECT STRUCTURE
 # ══════════════════════════════════════════════════════════════════════════════
 #
 #  Kilrun/
-#  ├── INSTALL.py            ← file này (xoá sau khi install xong)
-#  ├── run.bat / run.sh      ← khởi động
+#  ├── INSTALL.py            ← this file (can be deleted after installation)
+#  ├── run.bat / run.sh      ← launch scripts
 #  │
-#  ├── core/                 ← ENGINE — KHÔNG ĐƯỢC SỬA / XOÁ
+#  ├── core/                 ← ENGINE — DO NOT MODIFY OR DELETE
 #  │   ├── kilgoreai.py      ← API client
-#  │   └── config.py         ← đọc .env
+#  │   └── config.py         ← reads .env
 #  │
 #  ├── agent/                ← AGENT RUNTIME
-#  │   ├── kilrun.py         ← main TUI (chạy cái này)
-#  │   └── tools.py          ← công cụ agent (file, shell, code)
+#  │   ├── kilrun.py         ← main TUI (run this)
+#  │   └── tools.py          ← agent tools (files, shell, code)
 #  │
-#  ├── workspace/            ← NƠI AGENT LÀM VIỆC (tạo/sửa file tại đây)
+#  ├── workspace/            ← AGENT WORKSPACE (create and edit files here)
 #  │   └── .gitkeep
 #  │
-#  ├── scripts/              ← Script người dùng tự viết
+#  ├── scripts/              ← user-created scripts
 #  │   └── example.py
 #  │
-#  ├── logs/                 ← Lịch sử chat, log lỗi
+#  ├── logs/                 ← chat history and error logs
 #  │   └── .gitkeep
 #  │
-#  └── .env                  ← API key & cấu hình
+#  └── .env                  ← API key and configuration
 #
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -64,7 +64,7 @@ FILES: dict[str, str] = {}
 
 # ─────────────────────────────────────────────────────────────────────────────
 FILES["core/kilgoreai.py"] = r'''"""
-KilgoreAI Python Client — core engine. Đừng sửa file này.
+KilgoreAI Python Client — core engine. Do not modify this file.
 API docs: https://apidocs.kilgoreai.xyz/
 """
 import sys
@@ -177,7 +177,7 @@ class KilgoreAI:
 
 # ─────────────────────────────────────────────────────────────────────────────
 FILES["core/config.py"] = r'''"""
-Cấu hình Kilrun — đọc từ .env trong thư mục gốc.
+Kilrun configuration — read from the .env file in the project root.
 """
 import os
 from pathlib import Path
@@ -203,8 +203,8 @@ BASE_URL          = os.getenv("KILGORE_BASE_URL", "https://apidocs.kilgoreai.xyz
 
 # ─────────────────────────────────────────────────────────────────────────────
 FILES["agent/tools.py"] = r'''"""
-Kilrun Agent Tools — công cụ cho agent dùng để tương tác với hệ thống.
-KHÔNG xoá file này. Agent cần nó để hoạt động.
+Kilrun Agent Tools — utilities the agent uses to interact with the system.
+Do not delete this file. The agent requires it to operate.
 """
 import re
 import uuid
@@ -258,7 +258,7 @@ def run_python(code: str, timeout: int = 30) -> tuple[int, str, str]:
 
 
 def parse_actions(text: str) -> list[dict]:
-    """Trích xuất action block từ response AI."""
+    """Extract action blocks from an AI response."""
     actions = []
     for m in re.finditer(r"```create:([^\n]+)\n(.*?)```", text, re.DOTALL):
         actions.append({"type": "create", "path": m.group(1).strip(), "content": m.group(2)})
@@ -287,7 +287,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-# Thêm core/ vào path
+# Add core/ to the import path.
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT / "core"))
 sys.path.insert(0, str(Path(__file__).parent))
@@ -302,7 +302,7 @@ try:
     from rich.prompt import Confirm
     from rich import box
 except ImportError:
-    print("Thiếu rich. Chạy: pip install rich")
+    print("The rich package is missing. Install it with: pip install rich")
     sys.exit(1)
 
 try:
@@ -310,7 +310,7 @@ try:
     from kilgoreai import KilgoreAI
     import tools
 except ImportError as e:
-    print(f"Lỗi import: {e}")
+    print(f"Import error: {e}")
     sys.exit(1)
 
 # ── Console ────────────────────────────────────────────────────────────────────
@@ -325,56 +325,56 @@ BANNER = """\
 ╚═╝  ╚═╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝[/]
 [dim #a78bfa]AI Agent Terminal · kilgoreai.xyz[/]"""
 
-AGENT_SYSTEM = """Bạn là Kilrun — AI agent chạy trực tiếp trên terminal.
+AGENT_SYSTEM = """You are Kilrun, an AI agent running directly in the terminal.
 
-Bạn CÓ THỂ tạo file và chạy lệnh bằng cú pháp sau:
+You CAN create files and run commands using the following syntax:
 
-Tạo file:
-```create:tên_file.py
-# nội dung
+Create a file:
+```create:filename.py
+# file contents
 ```
 
-Chạy shell:
+Run a shell command:
 ```shell
-lệnh
+command
 ```
 
-Chạy Python trực tiếp:
+Run Python directly:
 ```python:run
 print("hello")
 ```
 
-Mọi file tạo ra nằm trong workspace/.
-Giải thích ngắn trước khi làm. Trả lời tiếng Việt.
+All created files must be placed in workspace/.
+Briefly explain what you are about to do. Respond in English.
 """
 
 HELP_TEXT = """
 ## ⚡ Kilrun — Commands
 
-| Lệnh | Mô tả |
+| Command | Description |
 |------|-------|
-| `/mode chat` | Chat thường |
-| `/mode agent` | Agent tự code, tạo file, chạy lệnh |
-| `/model <id>` | Đổi model |
-| `/search on\|off` | Bật/tắt web search |
-| `/files` | Xem workspace |
-| `/exec <cmd>` | Chạy shell trực tiếp |
-| `/image <prompt>` | Sinh ảnh |
-| `/tts <text>` | Text → MP3 |
-| `/models` | Danh sách models |
-| `/clear` | Xoá lịch sử |
-| `/save` | Lưu chat vào logs/ |
-| `/status` | Thông tin session |
-| `/help` | Bảng này |
-| `/copy [số]` | Copy phản hồi hoặc một khối code |
-| `/exit` | Thoát |
+| `/mode chat` | Standard chat |
+| `/mode agent` | Let the agent write code, create files, and run commands |
+| `/model <id>` | Change the model |
+| `/search on\|off` | Toggle web search |
+| `/files` | List workspace files |
+| `/exec <cmd>` | Run a shell command directly |
+| `/image <prompt>` | Generate an image |
+| `/tts <text>` | Convert text to MP3 |
+| `/models` | List available models |
+| `/clear` | Clear conversation history |
+| `/save` | Save the chat to logs/ |
+| `/status` | Show session information |
+| `/help` | Show this help menu |
+| `/copy [number]` | Copy a reply or a code block |
+| `/exit` | Exit |
 
 ## 🤖 Agent mode
-AI tự tạo file vào `workspace/`, tự chạy code.
-Mỗi hành động sẽ hỏi xác nhận trước khi thực thi.
+The AI can create files in `workspace/` and run code.
+You will be asked to confirm each action before it is executed.
 
 ## ⌨️  Shortcuts
-`Enter` gửi · `Ctrl+C` huỷ · `/exit` thoát
+`Enter` send · `Ctrl+C` cancel · `/exit` exit
 """
 
 
@@ -455,7 +455,7 @@ def copy_to_clipboard(text):
 
             if process is None:
                 raise RuntimeError(
-                    "Không tìm thấy wl-copy, xclip hoặc xsel"
+                    "Could not find wl-copy, xclip, or xsel"
                 )
 
         return True, ""
@@ -490,10 +490,10 @@ def print_ai(msg, mode: str = "chat"):
         console.print(
             "  [dim]Copy code:[/] "
             + commands
-            + "  [dim]| toàn bộ: /copy[/]"
+            + "  [dim]| full reply: /copy[/]"
         )
     else:
-        console.print("  [dim]Copy phản hồi: [bold]/copy[/][/]")
+        console.print("  [dim]Copy reply: [bold]/copy[/][/]")
 
 
 
@@ -608,11 +608,11 @@ class Session:
                 icon = "⚡" if arg == "agent" else "💬"
                 console.print(f"  [dim]→ {icon} mode: [bold]{self.mode}[/][/]")
             else:
-                console.print("[yellow]Dùng: /mode chat | /mode agent[/]")
+                console.print("[yellow]Usage: /mode chat | /mode agent[/]")
 
         elif cmd == "/model":
             if arg: self.model = arg; console.print(f"  [dim]→ model: [bold #6c63ff]{self.model}[/][/]")
-            else: console.print("[yellow]/model <tên>[/]")
+            else: console.print("[yellow]Usage: /model <name>[/]")
 
         elif cmd == "/search":
             self.search = arg.lower() not in ("off","0","false")
@@ -621,19 +621,19 @@ class Session:
         elif cmd == "/copy":
             if not self.last_reply:
                 console.print(
-                    "[yellow]Chưa có phản hồi AI nào để sao chép.[/]"
+                    "[yellow]There is no AI response to copy yet.[/]"
                 )
                 return
 
             if not arg:
                 text_to_copy = self.last_reply
-                description = "toàn bộ phản hồi"
+                description = "the full reply"
             else:
                 try:
                     block_number = int(arg)
                 except ValueError:
                     console.print(
-                        "[yellow]Dùng: /copy hoặc /copy <số khối code>[/]"
+                        "[yellow]Usage: /copy or /copy <code block number>[/]"
                     )
                     return
 
@@ -641,28 +641,28 @@ class Session:
 
                 if block_number < 1 or block_number > len(blocks):
                     console.print(
-                        "[yellow]Không có khối code số "
+                        "[yellow]There is no code block number "
                         + str(block_number)
-                        + ". Hiện có "
+                        + ". There are "
                         + str(len(blocks))
-                        + " khối.[/]"
+                        + " code block(s).[/]"
                     )
                     return
 
                 text_to_copy = blocks[block_number - 1]
-                description = "khối code " + str(block_number)
+                description = "code block " + str(block_number)
 
             copied, error = copy_to_clipboard(text_to_copy)
 
             if copied:
                 console.print(
-                    "  [green]✓[/] Đã copy "
+                    "  [green]✓[/] Copied "
                     + description
-                    + " vào clipboard."
+                    + " to the clipboard."
                 )
             else:
                 console.print(
-                    "[red]Không thể copy:[/] " + error
+                    "[red]Could not copy:[/] " + error
                 )
 
 
@@ -671,17 +671,17 @@ class Session:
             self.conv_id = str(uuid.uuid4())
             console.clear()
             console.print(BANNER); console.print()
-            console.print("[dim]Lịch sử đã xoá.[/]")
+            console.print("[dim]Conversation history cleared.[/]")
 
         elif cmd == "/save":
             ts = datetime.now().strftime("%Y%m%d_%H%M%S")
             out = self.logs_dir / f"chat_{ts}.json"
             out.write_text(json.dumps(self.history, ensure_ascii=False, indent=2), encoding="utf-8")
-            console.print(f"  [green]✓[/] Đã lưu: [dim]{out}[/]")
+            console.print(f"  [green]✓[/] Saved: [dim]{out}[/]")
 
         elif cmd == "/files":
             files = tools.list_workspace()
-            if not files: console.print("[dim]workspace/ trống.[/]"); return
+            if not files: console.print("[dim]workspace/ is empty.[/]"); return
             t = Table(box=box.SIMPLE, show_header=False, padding=(0,1))
             t.add_column(style="#6c63ff"); t.add_column(style="dim")
             for f in files:
@@ -689,45 +689,45 @@ class Session:
             console.print(Panel(t, title="[dim]workspace/[/]", border_style="dim"))
 
         elif cmd == "/exec":
-            if not arg: console.print("[yellow]/exec <lệnh>[/]"); return
+            if not arg: console.print("[yellow]Usage: /exec <command>[/]"); return
             with console.status(f"[dim]$ {arg}[/]"):
                 rc, out, err = tools.run_shell(arg)
             print_exec("shell", arg, rc, out, err)
 
         elif cmd == "/image":
             if not arg: console.print("[yellow]/image <prompt>[/]"); return
-            with console.status("[dim]Đang sinh ảnh...[/]"):
+            with console.status("[dim]Generating image...[/]"):
                 try:
                     urls = self.ai.generate_image(arg)
                     for u in urls: console.print(f"  [green]✓[/] {u}")
                 except Exception as e: console.print(f"  [red]✗[/] {e}")
 
         elif cmd == "/tts":
-            if not arg: console.print("[yellow]/tts <văn bản>[/]"); return
+            if not arg: console.print("[yellow]Usage: /tts <text>[/]"); return
             out = tools.WORKSPACE / "tts_output.mp3"
-            with console.status("[dim]Đang tạo audio...[/]"):
+            with console.status("[dim]Generating audio...[/]"):
                 try:
                     self.ai.tts(arg, save_path=out)
-                    console.print(f"  [green]✓[/] Đã lưu: [dim]{out}[/]")
+                    console.print(f"  [green]✓[/] Saved: [dim]{out}[/]")
                 except Exception as e: console.print(f"  [red]✗[/] {e}")
 
         elif cmd == "/models":
-            with console.status("[dim]Đang tải...[/]"):
+            with console.status("[dim]Loading...[/]"):
                 try:
                     ms = self.ai.list_models()
                     t = Table(box=box.SIMPLE, show_header=False)
                     t.add_column(style="#6c63ff")
                     for m in ms: t.add_row(m if isinstance(m,str) else m.get("id","?"))
                     console.print(t)
-                except Exception as e: console.print(f"[red]Lỗi:[/] {e}")
+                except Exception as e: console.print(f"[red]Error:[/] {e}")
 
         else:
-            console.print(f"[yellow]Lệnh không biết: {cmd}  (gõ /help)[/]")
+            console.print(f"[yellow]Unknown command: {cmd}  (type /help)[/]")
 
     def run(self):
         console.print(BANNER); console.print()
         show_status(self.model, self.mode, self.search)
-        console.print("[dim]  /help · /mode agent · Ctrl+C thoát[/]\n")
+        console.print("[dim]  /help · /mode agent · Ctrl+C to exit[/]\n")
 
         while True:
             try:
@@ -738,7 +738,7 @@ class Session:
                 if line.startswith("/"): self.command(line)
                 else: self.send(line)
             except KeyboardInterrupt:
-                console.print("\n[dim]Ctrl+C · gõ /exit để thoát[/]")
+                console.print("\n[dim]Ctrl+C · type /exit to quit[/]")
             except SystemExit: break
             except EOFError: break
 
@@ -746,11 +746,11 @@ class Session:
 def main():
     import argparse
     p = argparse.ArgumentParser(prog="kilrun", description="Kilrun AI Agent Terminal",
-                                epilog="Gõ /help để xem tất cả lệnh")
-    p.add_argument("--agent",  "-a", action="store_true", help="Bắt đầu ở agent mode")
+                                epilog="Type /help to see all commands")
+    p.add_argument("--agent",  "-a", action="store_true", help="Start in agent mode")
     p.add_argument("--model",  "-m", default=None)
     p.add_argument("--search", "-s", action="store_true")
-    p.add_argument("prompt", nargs="*", help="Gửi prompt ngay rồi vào loop")
+    p.add_argument("prompt", nargs="*", help="Send a prompt immediately, then enter the interactive loop")
     args = p.parse_args()
 
     s = Session()
@@ -770,8 +770,8 @@ if __name__ == "__main__":
 
 # ─────────────────────────────────────────────────────────────────────────────
 FILES["scripts/example.py"] = r'''"""
-Ví dụ script dùng KilgoreAI trực tiếp.
-Chạy: python scripts/example.py
+Example script using KilgoreAI directly.
+Run: python scripts/example.py
 """
 import sys
 from pathlib import Path
@@ -782,7 +782,7 @@ from kilgoreai import KilgoreAI
 
 ai = KilgoreAI(api_key=config.API_KEY)
 
-reply = ai.chat([{"role": "user", "content": "Hello! Giới thiệu ngắn về bạn."}])
+reply = ai.chat([{"role": "user", "content": "Hello! Briefly introduce yourself."}])
 print(reply)
 '''
 
@@ -791,7 +791,7 @@ FILES["logs/.gitkeep"] = ""
 
 FILES[".env"] = """\
 # Kilrun Configuration
-# Để trống KILGORE_API_KEY cũng được — API vẫn hoạt động qua cookie
+# KILGORE_API_KEY may be left empty — the API can also authenticate via cookies.
 
 KILGORE_API_KEY=
 KILGORE_MODEL=claude-sonnet-5
@@ -815,7 +815,7 @@ FILES["run.sh"] = """\
 #!/bin/bash
 cd "$(dirname "$0")"
 if [ ! -f .venv/bin/python ]; then
-    echo "[*] Tạo venv..."
+    echo "[*] Creating virtual environment..."
     python3 -m venv .venv
     .venv/bin/pip install httpx rich --quiet
 fi
@@ -833,11 +833,11 @@ def install():
     p(f"\n{BOLD}{CYAN}╔══════════════════════════════════════╗")
     p(f"║   KILRUN Installer                   ║")
     p(f"╚══════════════════════════════════════╝{RESET}\n")
-    p(f"{DIM}Thư mục gốc: {ROOT}{RESET}\n")
+    p(f"{DIM}Project root: {ROOT}{RESET}\n")
 
-    # 1. Tạo thư mục
+    # 1. Create directories
     dirs = ["core", "agent", "workspace", "scripts", "logs"]
-    p(f"{BOLD}[1/3] Tạo cấu trúc thư mục{RESET}")
+    p(f"{BOLD}[1/3] Create directory structure{RESET}")
     for d in dirs:
         path = ROOT / d
         path.mkdir(exist_ok=True)
@@ -849,7 +849,7 @@ def install():
         target = ROOT / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.exists() and rel in (".env",):
-            info(f"Giữ nguyên: {rel}")
+            info(f"Keeping existing file: {rel}")
             continue
         target.write_text(content, encoding="utf-8")
         ok(rel)
@@ -860,44 +860,44 @@ def install():
         try: sh.chmod(0o755)
         except: pass
 
-    # 3. Cài dependencies
-    p(f"\n{BOLD}[3/3] Cài môi trường Python (.venv){RESET}")
+    # 3. Install dependencies
+    p(f"\n{BOLD}[3/3] Set up Python environment (.venv){RESET}")
     venv = ROOT / ".venv"
 
     if not venv.exists():
-        info("Tạo .venv ...")
+        info("Creating .venv ...")
         subprocess.run([sys.executable, "-m", "venv", str(venv)], check=True)
-        ok(".venv/ tạo xong")
+        ok(".venv/ created")
     else:
-        info(".venv/ đã tồn tại, bỏ qua")
+        info(".venv/ already exists, skipping")
 
     pip = venv / ("Scripts" if sys.platform == "win32" else "bin") / "pip"
-    info("Cài httpx + rich ...")
+    info("Installing httpx + rich ...")
     subprocess.run([str(pip), "install", "httpx", "rich", "--quiet"], check=True)
-    ok("httpx + rich đã cài")
+    ok("httpx + rich installed")
 
     # Done
     p(f"\n{BOLD}{GREEN}╔══════════════════════════════════════╗")
-    p(f"║   ✓  Cài đặt hoàn tất!              ║")
+    p(f"║   ✓  Installation complete!         ║")
     p(f"╚══════════════════════════════════════╝{RESET}")
     p(f"""
-{BOLD}Cấu trúc:{RESET}
-  {CYAN}core/{RESET}         ← Engine (không sửa/xoá)
+{BOLD}Structure:{RESET}
+    {CYAN}core/{RESET}         ← Engine (do not modify or delete)
   {CYAN}agent/{RESET}        ← Kilrun AI agent
-  {CYAN}workspace/{RESET}    ← Nơi agent tạo file
-  {CYAN}scripts/{RESET}      ← Scripts của bạn
-  {CYAN}logs/{RESET}         ← Lịch sử chat
-  {CYAN}.env{RESET}          ← Cấu hình & API key
+    {CYAN}workspace/{RESET}    ← Where the agent creates files
+    {CYAN}scripts/{RESET}      ← Your scripts
+    {CYAN}logs/{RESET}         ← Chat history
+    {CYAN}.env{RESET}          ← Configuration and API key
 
-{BOLD}Chạy ngay:{RESET}
+{BOLD}Quick start:{RESET}
   Windows:  {GREEN}run.bat{RESET}
   Linux:    {GREEN}./run.sh{RESET}
 
-  Bắt đầu agent mode:
+    Start in agent mode:
   Windows:  {GREEN}run.bat --agent{RESET}
   Linux:    {GREEN}./run.sh --agent{RESET}
 
-{DIM}Sửa .env để thêm API key (không bắt buộc){RESET}
+{DIM}Add an API key to .env (optional){RESET}
 """)
 
 

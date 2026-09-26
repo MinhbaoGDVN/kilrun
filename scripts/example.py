@@ -1,6 +1,6 @@
 """
-Ví dụ script dùng KilgoreAI trực tiếp.
-Chạy: python scripts/example.py
+Example script using KilgoreAI directly.
+Run: python scripts/example.py
 """
 import sys
 from pathlib import Path
@@ -11,5 +11,5 @@ from kilgoreai import KilgoreAI
 
 ai = KilgoreAI(api_key=config.API_KEY)
 
-reply = ai.chat([{"role": "user", "content": "Hello! Giới thiệu ngắn về bạn."}])
+reply = ai.chat([{"role": "user", "content": "Hello! Briefly introduce yourself."}])
 print(reply)
