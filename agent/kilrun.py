@@ -12,6 +12,7 @@ import sys
 import uuid
 import json
 import re
+import shlex
 import subprocess
 from pathlib import Path
 from datetime import datetime
@@ -96,6 +97,8 @@ HELP_TEXT = """
 | `/status` | Show session information |
 | `/help` | Show this help menu |
 | `/copy [number]` | Copy a reply or a code block |
+| `/multi` | Enter a multiline prompt; type `.` on a line by itself to send |
+| `/attach <path> [path ...]` | Attach local images or documents to the next message |
 | `/exit` | Exit |
 
 ## 🤖 Agent mode
@@ -271,24 +274,40 @@ class Session:
         self.model   = config.DEFAULT_MODEL
         self.mode    = "chat"
         self.search  = False
+        self.pending_attachments: list[Path] = []
         self.logs_dir = ROOT / "logs"
         self.logs_dir.mkdir(exist_ok=True)
 
     def send(self, user_input: str):
         system = AGENT_SYSTEM if self.mode == "agent" else (config.SYSTEM_PROMPT or None)
-        self.history.append({"role": "user", "content": user_input})
-        print_user(user_input)
+        attachment_names = [path.name for path in self.pending_attachments]
+        display_text = user_input
+        if attachment_names:
+            display_text += "\n\nAttachments: " + ", ".join(attachment_names)
+        print_user(display_text)
 
         with console.status(f"[dim #6c63ff]⠋ {self.model}[/]", spinner="dots",
                             spinner_style="#6c63ff"):
             try:
+                content = user_input
+                if self.pending_attachments:
+                    content = [{"type": "text", "text": user_input}]
+                    for path in self.pending_attachments:
+                        uploaded = self.ai.upload_file(path)
+                        content.append({"type": "file_id", "file_id": uploaded["id"]})
+
+                self.history.append({"role": "user", "content": content})
                 reply = self.ai.chat(
                     self.history, model=self.model, system=system,
                     web_search=self.search, conversation_id=self.conv_id,
                 )
             except Exception as e:
                 console.print(f"[red]✗ API error:[/] {e}")
-                self.history.pop(); return
+                if self.history and self.history[-1].get("role") == "user":
+                    self.history.pop()
+                return
+
+        self.pending_attachments.clear()
 
         reply = to_text(reply)
         self.last_reply = reply
@@ -393,6 +412,48 @@ class Session:
                 console.print(
                     "[red]Could not copy:[/] " + error
                 )
+
+        elif cmd == "/attach":
+            if not arg:
+                console.print("[yellow]Usage: /attach <path> [path ...][/]")
+                return
+
+            try:
+                raw_paths = shlex.split(arg, posix=False)
+            except ValueError as exc:
+                console.print(f"[red]Invalid attachment path:[/] {exc}")
+                return
+
+            queued = []
+            for raw_path in raw_paths:
+                cleaned_path = raw_path.strip('"\'')
+                path = Path(cleaned_path).expanduser().resolve()
+                if not path.is_file():
+                    console.print(f"[yellow]File not found:[/] {path}")
+                    continue
+                if path.stat().st_size > 25 * 1024 * 1024:
+                    console.print(f"[yellow]File exceeds the 25 MB limit:[/] {path.name}")
+                    continue
+                if path not in self.pending_attachments:
+                    self.pending_attachments.append(path)
+                    queued.append(path.name)
+
+            if queued:
+                console.print("  [green]✓[/] Queued: " + ", ".join(queued))
+            if self.pending_attachments:
+                console.print("  [dim]Attachments will be sent with your next message.[/]")
+
+        elif cmd == "/multi":
+            console.print("[dim]Enter your prompt. Type . on a line by itself to send.[/]")
+            lines = []
+            while True:
+                next_line = console.input("[dim]...[/] ")
+                if next_line == ".":
+                    break
+                lines.append(next_line)
+            prompt = "\n".join(lines).strip()
+            if prompt:
+                self.send(prompt)
 
 
         elif cmd == "/clear":
