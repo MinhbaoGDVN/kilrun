@@ -19,7 +19,7 @@ Upon installation, the system will automatically initialize the following standa
 ## 🚀 Installation & Usage
 
 ### 1. Automatic Installation
-Just run the installation script once in your terminal:
+Simply run the installation script once in your terminal, pointing it to the directory where you want to install it:
 ```
 python INSTALL.py
 ```
