@@ -229,6 +229,7 @@ class Session:
         print_ai(reply, mode=self.mode)
 
         if self.mode == "agent":
+            reply = to_text(reply)
             for action in tools.parse_actions(reply):
                 if action["type"] == "create":
                     p = tools.write_file(action["path"], action["content"])

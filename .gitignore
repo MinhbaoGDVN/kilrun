@@ -3,6 +3,8 @@
 __pycache__/
 logs/
 .DS_Store
+/wordspace
 
 # File cấu hình cục bộ (chứa API key hoặc cấu hình riêng của máy)
 .env
+
