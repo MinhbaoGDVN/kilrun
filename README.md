@@ -3,16 +3,21 @@
 **Kilrun** is a powerful AI Agent running directly on the terminal, designed to interact and automate programming tasks. The project automatically sets up the entire workspace, integrates various powerful AI models (such as Claude, Flux), and can operate flexibly via cookies without strictly requiring an API Key.
 
 ## 🌟 Key Features
-* **Agent Mode:** Allows the AI to automatically create files, run shell commands, and execute Python code directly within a safe, isolated `workspace/`.
+* **Agent Mode:** Proposes file changes for review and asks before running shell commands or Python. File tools are restricted to `workspace/`; approved commands run locally with your operating-system permissions and are not sandboxed.
 * **Multimodal Capabilities:** Supports natural language chat (defaulting to `claude-sonnet-5`), image generation (`flux-1.1-pro`), video generation (`video-ltx-2.5`), and Text-to-Speech (TTS).
 * **Web Search Integration:** Enables the AI to proactively search the internet for real-time information using the `/search` command.
 * **Intuitive Terminal UI:** Utilizes the `rich` library to display beautiful colors, markdown formatting, syntax highlighting, and an elegant workspace interface.
+
+## Legal
+Kilrun source code is distributed under the MIT License in [`LICENSE`](LICENSE). Use of connected APIs and other third-party services is governed by their own terms and privacy policies.
+
+The project includes draft documents for review: [`Privacy Policy`](PRIVACY.md) and [`Terms of Use`](TERMS.md). They contain placeholders and are not ready to be treated as binding policies until the maintainer verifies and completes them.
 
 ## 📂 Directory Structure
 Upon installation, the system will automatically initialize the following standard structure:
 * `core/`: The core engine handling API communication (Do not modify).
 * `agent/`: Contains the main execution code of the AI Agent and system tools.
-* `workspace/`: An isolated directory for the Agent to freely create, edit files, and work.
+* `workspace/`: The directory used by the Agent's file tools. Shell and Python commands can access other resources available to your operating-system account.
 * `scripts/`: A dedicated folder for users to write their own custom interaction scripts.
 * `logs/`: Where chat history and logs are automatically saved.
 

@@ -317,19 +317,29 @@ class Session:
         if self.mode == "agent":
             for action in tools.parse_actions(reply):
                 if action["type"] == "create":
-                    p = tools.write_file(action["path"], action["content"])
-                    console.print(f"\n  [green]✓ created[/] [dim]{p}[/]")
+                    try:
+                        target, diff = tools.preview_file(action["path"], action["content"])
+                    except (OSError, ValueError) as e:
+                        console.print(f"[red]Cannot prepare file:[/] {e}")
+                        continue
+                    console.print(Panel(Syntax(diff, "diff", line_numbers=False), title=f"Proposed change: {target}", border_style="yellow"))
+                    if Confirm.ask("\n  [yellow]Apply this file change?[/]", default=False):
+                        try:
+                            written = tools.write_file(action["path"], action["content"])
+                            console.print(f"\n  [green]✓ written[/] [dim]{written}[/]")
+                        except (OSError, ValueError) as e:
+                            console.print(f"[red]Could not write file:[/] {e}")
 
                 elif action["type"] == "shell":
                     cmd = action["cmd"]
-                    if Confirm.ask(f"\n  [yellow]run shell:[/] [dim]{cmd}[/]", default=True):
+                    if Confirm.ask(f"\n  [yellow]Run shell command:[/] [dim]{cmd}[/]", default=False):
                         with console.status("[dim]running...[/]"):
                             rc, out, err = tools.run_shell(cmd)
                         print_exec("shell", cmd, rc, out, err)
                         self.history.append({"role":"user","content":f"Output:\n```\n{out}{err}\n```"})
 
                 elif action["type"] == "python":
-                    if Confirm.ask("\n  [yellow]run python?[/]", default=True):
+                    if Confirm.ask("\n  [yellow]Run Python code?[/]", default=False):
                         with console.status("[dim]python...[/]"):
                             rc, out, err = tools.run_python(action["code"])
                         print_exec("python", "(inline)", rc, out, err)
