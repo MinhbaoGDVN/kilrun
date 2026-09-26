@@ -114,11 +114,29 @@ def print_user(msg: str):
         padding=(0, 1),
     ))
 
+def to_text(value):
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, list):
+        return "\n".join(to_text(item) for item in value)
+    if isinstance(value, dict):
+        if "text" in value:
+            return to_text(value["text"])
+        if "content" in value:
+            return to_text(value["content"])
+    return str(value)
+
 def print_ai(msg: str, mode: str = "chat"):
     color = "#a78bfa" if mode == "chat" else "#34d399"
     label = "Kilrun" if mode == "chat" else "Kilrun [bold]⚡ Agent[/bold]"
-    try:    content = Markdown(msg)
-    except: content = Text(msg)
+    msg = to_text(msg)
+
+    try:
+        content = Markdown(msg)
+    except (TypeError, ValueError):
+        content = Text(msg)
     console.print(Panel(content, title=f"[bold {color}]{label}[/]",
                          border_style=color, padding=(0, 1)))
 
