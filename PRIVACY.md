@@ -4,7 +4,7 @@
 
 **Last updated:** September 26, 2026
 
-**Maintainer / contact:** [Name or legal entity] · [Privacy contact email]
+**Maintainer / contact:** MinhbaoGDVN · minhbaom45@gmail.com
 
 ## 1. Scope
 
