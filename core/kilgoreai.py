@@ -4,6 +4,7 @@ API docs: https://apidocs.kilgoreai.xyz/
 """
 import json
 import httpx
+import mimetypes
 from pathlib import Path
 from typing import Iterator
 
@@ -12,7 +13,7 @@ BASE_URL = "https://apidocs.kilgoreai.xyz"
 class KilgoreAI:
     def __init__(self, api_key: str | None = None, base_url: str = BASE_URL):
         self.base_url = base_url.rstrip("/")
-        headers = {"Content-Type": "application/json"}
+        headers = {}
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
         self._client = httpx.Client(headers=headers, cookies={}, timeout=300)
@@ -81,9 +82,36 @@ class KilgoreAI:
     # FILES
     def upload_file(self, file_path, incognito=False):
         path = Path(file_path)
+        image_types = {
+            ".avif": "image/avif",
+            ".bmp": "image/bmp",
+            ".gif": "image/gif",
+            ".jpeg": "image/jpeg",
+            ".jpg": "image/jpeg",
+            ".png": "image/png",
+            ".tif": "image/tiff",
+            ".tiff": "image/tiff",
+            ".webp": "image/webp",
+        }
+        media_type = image_types.get(path.suffix.lower()) or mimetypes.guess_type(path.name)[0] or "application/octet-stream"
         hdrs = {"X-Incognito":"1"} if incognito else {}
         with open(path,"rb") as f:
-            r = self._client.post(self._url("/v1/files"), files={"file":(path.name,f)}, headers=hdrs)
+            r = self._client.post(
+                self._url("/v1/files"),
+                files={"file": (path.name, f, media_type)},
+                headers=hdrs,
+            )
+        if r.is_error:
+            try:
+                payload = r.json()
+                error = payload.get("error", {})
+                detail = error.get("message") if isinstance(error, dict) else str(error)
+            except ValueError:
+                detail = r.text.strip()
+            message = f"File upload failed ({r.status_code})"
+            if detail:
+                message += f": {detail}"
+            raise httpx.HTTPStatusError(message, request=r.request, response=r)
         r.raise_for_status(); return r.json()
     def list_files(self): return self._get("/v1/files").json()
     def delete_file(self, fid):
