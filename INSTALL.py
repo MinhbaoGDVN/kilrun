@@ -268,6 +268,7 @@ def parse_actions(text: str) -> list[dict]:
 
 # ─────────────────────────────────────────────────────────────────────────────
 FILES["agent/kilrun.py"] = r'''#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 ██╗  ██╗██╗██╗     ██████╗ ██╗   ██╗███╗   ██╗
 ██║ ██╔╝██║██║     ██╔══██╗██║   ██║████╗  ██║
@@ -362,6 +363,7 @@ HELP_TEXT = """
 | `/save` | Lưu chat vào logs/ |
 | `/status` | Thông tin session |
 | `/help` | Bảng này |
+| `/copy [số]` | Copy phản hồi hoặc một khối code |
 | `/exit` | Thoát |
 
 ## 🤖 Agent mode
@@ -397,6 +399,66 @@ def to_text(value):
             return to_text(value["content"])
     return str(value)
 
+def extract_code_blocks(message):
+    message = to_text(message)
+
+    matches = re.findall(
+        r"```[^\r\n]*\r?\n(.*?)```",
+        message,
+        flags=re.DOTALL
+    )
+
+    return [code.rstrip("\r\n") for code in matches]
+
+
+def copy_to_clipboard(text):
+    text = to_text(text)
+
+    try:
+        if sys.platform == "win32":
+            process = subprocess.run(
+                ["clip"],
+                input=text,
+                text=True,
+                check=True
+            )
+        elif sys.platform == "darwin":
+            process = subprocess.run(
+                ["pbcopy"],
+                input=text,
+                text=True,
+                check=True
+            )
+        else:
+            clipboard_commands = [
+                ["wl-copy"],
+                ["xclip", "-selection", "clipboard"],
+                ["xsel", "--clipboard", "--input"],
+            ]
+
+            process = None
+
+            for command in clipboard_commands:
+                try:
+                    process = subprocess.run(
+                        command,
+                        input=text,
+                        text=True,
+                        check=True
+                    )
+                    break
+                except (FileNotFoundError, subprocess.CalledProcessError):
+                    continue
+
+            if process is None:
+                raise RuntimeError(
+                    "Không tìm thấy wl-copy, xclip hoặc xsel"
+                )
+
+        return True, ""
+
+    except Exception as exc:
+        return False, str(exc)
 
 def print_ai(msg, mode: str = "chat"):
     color = "#a78bfa" if mode == "chat" else "#34d399"
@@ -414,6 +476,22 @@ def print_ai(msg, mode: str = "chat"):
         border_style=color,
         padding=(0, 1)
     ))
+
+    blocks = extract_code_blocks(msg)
+
+    if blocks:
+        commands = "  ".join(
+            "[bold #a78bfa]/copy " + str(index) + "[/]"
+            for index in range(1, len(blocks) + 1)
+        )
+        console.print(
+            "  [dim]Copy code:[/] "
+            + commands
+            + "  [dim]| toàn bộ: /copy[/]"
+        )
+    else:
+        console.print("  [dim]Copy phản hồi: [bold]/copy[/][/]")
+
 
 
 def print_exec(kind: str, detail: str, rc: int, out: str, err: str):
@@ -438,7 +516,6 @@ def print_exec(kind: str, detail: str, rc: int, out: str, err: str):
 
     if err:
         console.print(Text(" stderr: " + err, style="red dim"))
-
 
 
 def show_status(model, mode, search):
@@ -481,11 +558,12 @@ class Session:
                 console.print(f"[red]✗ API error:[/] {e}")
                 self.history.pop(); return
 
+        reply = to_text(reply)
+        self.last_reply = reply
         self.history.append({"role": "assistant", "content": reply})
         print_ai(reply, mode=self.mode)
 
         if self.mode == "agent":
-            reply = to_text(reply)
             for action in tools.parse_actions(reply):
                 if action["type"] == "create":
                     p = tools.write_file(action["path"], action["content"])
@@ -536,6 +614,54 @@ class Session:
         elif cmd == "/search":
             self.search = arg.lower() not in ("off","0","false")
             console.print(f"  [dim]→ search: [bold]{'on' if self.search else 'off'}[/][/]")
+
+        elif cmd == "/copy":
+            if not self.last_reply:
+                console.print(
+                    "[yellow]Chưa có phản hồi AI nào để sao chép.[/]"
+                )
+                return
+
+            if not arg:
+                text_to_copy = self.last_reply
+                description = "toàn bộ phản hồi"
+            else:
+                try:
+                    block_number = int(arg)
+                except ValueError:
+                    console.print(
+                        "[yellow]Dùng: /copy hoặc /copy <số khối code>[/]"
+                    )
+                    return
+
+                blocks = extract_code_blocks(self.last_reply)
+
+                if block_number < 1 or block_number > len(blocks):
+                    console.print(
+                        "[yellow]Không có khối code số "
+                        + str(block_number)
+                        + ". Hiện có "
+                        + str(len(blocks))
+                        + " khối.[/]"
+                    )
+                    return
+
+                text_to_copy = blocks[block_number - 1]
+                description = "khối code " + str(block_number)
+
+            copied, error = copy_to_clipboard(text_to_copy)
+
+            if copied:
+                console.print(
+                    "  [green]✓[/] Đã copy "
+                    + description
+                    + " vào clipboard."
+                )
+            else:
+                console.print(
+                    "[red]Không thể copy:[/] " + error
+                )
+
 
         elif cmd == "/clear":
             self.history.clear()
