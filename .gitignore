@@ -1,0 +1,8 @@
+# Môi trường ảo và thư mục hệ thống
+.venv/
+__pycache__/
+logs/
+.DS_Store
+
+# File cấu hình cục bộ (chứa API key hoặc cấu hình riêng của máy)
+.env
