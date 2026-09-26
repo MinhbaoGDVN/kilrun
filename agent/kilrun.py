@@ -128,7 +128,22 @@ def to_text(value):
             return to_text(value["content"])
     return str(value)
 
-def print_ai(msg: str, mode: str = "chat"):
+def to_text(value):
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, list):
+        return chr(10).join(to_text(item) for item in value)
+    if isinstance(value, dict):
+        if "text" in value:
+            return to_text(value["text"])
+        if "content" in value:
+            return to_text(value["content"])
+    return str(value)
+
+
+def print_ai(msg, mode: str = "chat"):
     color = "#a78bfa" if mode == "chat" else "#34d399"
     label = "Kilrun" if mode == "chat" else "Kilrun [bold]⚡ Agent[/bold]"
     msg = to_text(msg)
@@ -137,18 +152,38 @@ def print_ai(msg: str, mode: str = "chat"):
         content = Markdown(msg)
     except (TypeError, ValueError):
         content = Text(msg)
-    console.print(Panel(content, title=f"[bold {color}]{label}[/]",
-                         border_style=color, padding=(0, 1)))
+
+    console.print(Panel(
+        content,
+        title="[bold " + color + "]" + label + "[/]",
+        border_style=color,
+        padding=(0, 1)
+    ))
+
 
 def print_exec(kind: str, detail: str, rc: int, out: str, err: str):
     icon = "✓" if rc == 0 else "✗"
-    clr  = "green" if rc == 0 else "red"
-    console.print(f"\n  [{clr}]{icon}[/] [dim]{kind}:[/] [italic]{detail}[/]")
-    if out.strip():
-        console.print(Syntax(out.rstrip(), "text", theme="monokai",
-                              background_color="default", line_numbers=False))
-    if err.strip():
-        console.print(f"  [red dim]stderr:[/] {err.strip()}")
+    clr = "green" if rc == 0 else "red"
+    out = to_text(out).strip()
+    err = to_text(err).strip()
+
+    console.print(
+        chr(10) + " [" + clr + "]" + icon + "[/] "
+        + "[dim]" + to_text(kind) + "[/] "
+        + "[italic]" + to_text(detail) + "[/]"
+    )
+
+    if out:
+        console.print(Syntax(
+            out,
+            "text",
+            background_color="default",
+            line_numbers=False
+        ))
+
+    if err:
+        console.print(Text(" stderr: " + err, style="red dim"))
+
 
 def show_status(model, mode, search):
     t = Table(box=box.SIMPLE, show_header=False, padding=(0, 2))
