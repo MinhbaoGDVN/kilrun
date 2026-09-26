@@ -15,7 +15,7 @@ class KilgoreAI:
         headers = {"Content-Type": "application/json"}
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
-        self._client = httpx.Client(headers=headers, cookies={}, timeout=60)
+        self._client = httpx.Client(headers=headers, cookies={}, timeout=300)
 
     def _url(self, path): return f"{self.base_url}{path}"
     def _post(self, path, **kw):
