@@ -11,6 +11,8 @@ Kilrun · AI Agent Terminal · kilgoreai.xyz
 import sys
 import uuid
 import json
+import re
+import subprocess
 from pathlib import Path
 from datetime import datetime
 

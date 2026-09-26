@@ -67,10 +67,13 @@ FILES["core/kilgoreai.py"] = r'''"""
 KilgoreAI Python Client — core engine. Đừng sửa file này.
 API docs: https://apidocs.kilgoreai.xyz/
 """
+import sys
+import uuid
 import json
-import httpx
+import re
+import subprocess
 from pathlib import Path
-from typing import Iterator
+from datetime import datetime
 
 BASE_URL = "https://apidocs.kilgoreai.xyz"
 
