@@ -50,14 +50,6 @@ To the maximum extent permitted by applicable law, the Kilrun software authors a
 
 The maintainer may change or discontinue services they operate, subject to applicable law. Third-party providers may independently suspend access, change APIs, enforce limits, or discontinue service under their own terms.
 
-## 8. Governing law and contact
-
-**Governing law:** [Jurisdiction]
-
-**Contact:** [Legal contact email or postal address]
-
-Complete these fields before publication. Do not imply that the maintainer operates or controls the default API unless that is accurate.
-
-## 9. Updates and legal note
+## 8. Updates and legal note
 
 These terms should be reviewed whenever the project, its operators, or its service integrations materially change. This draft is informational and is not legal advice. Obtain legal review for the jurisdictions where the software or any related service is offered.
